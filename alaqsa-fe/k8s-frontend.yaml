@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alaqsa-frontend
+  namespace: default
+  labels:
+    app: alaqsa-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alaqsa-frontend
+  template:
+    metadata:
+      labels:
+        app: alaqsa-frontend
+    spec:
+      containers:
+        - name: nextjs
+          image: alaqsa-frontend:latest
+          imagePullPolicy: Never # Uses the image imported locally via K3s
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alaqsa-frontend-svc
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: alaqsa-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: alaqsa-frontend-ingress
+  namespace: default
+spec:
+  rules:
+    - host: alaqsa.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: alaqsa-frontend-svc
+                port:
+                  number: 80
