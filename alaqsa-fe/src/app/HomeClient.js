@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import ProductCard from '../components/ProductCard';
+import TestimonialsGrid from '../components/TestimonialsGrid';
 
 const Filter3D = dynamic(() => import('../components/Filter3D'), { ssr: false });
 
@@ -67,7 +68,7 @@ const T = {
     'shop.all':{ar:'عرض الكل',en:'View all'},
   };
 
-export default function HomeClient({ products = [] }) {
+export default function HomeClient({ products = [], testimonials = [] }) {
   const [lang, setLang] = useState('ar');
 
   const toggleLang = () => {
@@ -232,17 +233,9 @@ export default function HomeClient({ products = [] }) {
   </div>
 </section>
 
-{/* SAYS */}
-<section className="band" style={{background: "var(--bg)"}}>
-  <div className="wrap">
-    <span className="tag ar rv"  dangerouslySetInnerHTML={{ __html: t("says.tag") }}></span>
-    <blockquote className="big-q rv"  dangerouslySetInnerHTML={{ __html: t("says.bigq") }}></blockquote>
-    <div className="q-row">
-      <blockquote className="rv"  dangerouslySetInnerHTML={{ __html: t("says.q1") }}></blockquote>
-      <blockquote className="rv"  dangerouslySetInnerHTML={{ __html: t("says.q2") }}></blockquote>
-    </div>
-  </div>
-</section>
+
+{/* CUSTOMER TESTIMONIALS (from admin) */}
+<TestimonialsGrid items={testimonials} lang={lang} />
 
 {/* CONTACT */}
 <section className="contact band" id="contact">

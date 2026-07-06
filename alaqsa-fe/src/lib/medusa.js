@@ -72,4 +72,9 @@ export async function getProductByHandle(handle, { regionId } = {}) {
   return products?.[0] || null;
 }
 
+export async function getTestimonials() {
+  const { testimonials } = await medusaFetch("/store/testimonials");
+  return testimonials || [];
+}
+
 export { MEDUSA_BACKEND_URL };

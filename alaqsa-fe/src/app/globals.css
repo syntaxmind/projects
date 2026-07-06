@@ -215,3 +215,15 @@
   @media (max-width:920px){
     .prod-detail{grid-template-columns:1fr; gap:28px}
   }
+
+  /* ---- TESTIMONIALS ---- */
+  .testi-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:20px; margin-top:8px}
+  .testi-card{background:var(--surface); border:1px solid var(--line); padding:24px; transition:.25s}
+  .testi-card:hover{border-color:var(--red)}
+  .testi-top{display:flex; align-items:center; gap:14px; margin-bottom:14px}
+  .testi-avatar{width:52px; height:52px; border-radius:50%; object-fit:cover; flex-shrink:0; border:2px solid var(--line2)}
+  .testi-initials{background:var(--red); color:#fff; display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:800; font-family:var(--disp)}
+  .testi-name{font-weight:700; font-size:15px; margin-bottom:2px}
+  .testi-stars{color:#F59E0B; font-size:14px; letter-spacing:1px}
+  .testi-text{color:#cfcfcf; font-size:15px; line-height:1.75; margin:0; font-style:italic}
+  @media(max-width:600px){.testi-grid{grid-template-columns:1fr}}
