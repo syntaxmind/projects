@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import Script from 'next/script';
-import * as THREE from 'three';
+import dynamic from 'next/dynamic';
+import { medusaClient } from '../lib/medusa';
+
+const Filter3D = dynamic(() => import('../components/Filter3D'), { ssr: false });
 
 const T = {
     'nav.shop':{ar:'الأقصى لزينة السيارات',en:'Al-Aqsa Auto Accessories'},
@@ -59,8 +61,6 @@ const T = {
     'footer.note':{ar:'معاينة لموقع الأقصى لزينة السيارات بصور المحل الفعلية. الأرقام والحسابات والدوام للتأكيد قبل الإطلاق.',en:'Preview for Al-Aqsa Auto Accessories, built with the shop\u2019s own photos. Numbers, accounts and hours to be confirmed before launch.'}
   };
 
-import { medusaClient } from '../lib/medusa';
-
 export default function Home() {
   const [lang, setLang] = useState('ar');
   const [products, setProducts] = useState([]);
@@ -111,76 +111,7 @@ export default function Home() {
       io.observe(el);
     });
 
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const rpm = document.getElementById('rpm');
-    if (reduce) {
-      if (rpm) rpm.textContent = '+18%';
-    } else {
-      setTimeout(() => {
-        let v = 0;
-        const t = setInterval(() => {
-          v += 0.6;
-          if (v >= 18) {
-            v = 18;
-            clearInterval(t);
-          }
-          if (rpm) rpm.textContent = '+' + v.toFixed(0) + '%';
-        }, 26);
-      }, 600);
-    }
-    
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-
-  useEffect(() => {
-    let animationFrameId;
-    var host=document.getElementById('filter3d');
-    if(!host || host.querySelector('canvas')) return;
-        
-    var reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var W=host.clientWidth||760,H=host.clientHeight||420;
-    var renderer;
-    try{ renderer=new THREE.WebGLRenderer({antialias:true,alpha:true}); }catch(e){ return; }
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2)); renderer.setSize(W,H);
-    renderer.domElement.style.zIndex='1';
-    host.appendChild(renderer.domElement);
-    var fb=host.querySelector('.stage-fallback'); if(fb) fb.style.display='none';
-    var scene=new THREE.Scene();
-    var camera=new THREE.PerspectiveCamera(36,W/H,0.1,100); camera.position.set(0,0.2,6.6);
-    function pleated(rTop,rBot,h,pl,amp){
-      var segs=pl*4,rings=26,pos=[],idx=[],i,j;
-      for(i=0;i<=rings;i++){var v=i/rings,y=h*(v-0.5),r=rBot+(rTop-rBot)*v;
-        for(j=0;j<=segs;j++){var t=j/segs*Math.PI*2,fr=(t/(2*Math.PI))*pl,tri=Math.abs((fr-Math.floor(fr))*2-1),rr=r+amp*(tri-0.5)*2; pos.push(Math.cos(t)*rr,y,Math.sin(t)*rr);} }
-      var row=segs+1;
-      for(i=0;i<rings;i++)for(j=0;j<segs;j++){var a=i*row+j,b=a+1,c=a+row,d=c+1; idx.push(a,c,b,b,c,d);}
-      var g=new THREE.BufferGeometry(); g.setIndex(idx); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); g.computeVertexNormals(); return g;
-    }
-    var f=new THREE.Group();
-    f.add(new THREE.Mesh(pleated(1.12,1.34,2.45,54,0.075), new THREE.MeshStandardMaterial({color:0xc23a2e,roughness:.82,metalness:.08,flatShading:true})));
-    var chrome=new THREE.MeshStandardMaterial({color:0xe2e8ef,roughness:.16,metalness:1});
-    var tc=new THREE.Mesh(new THREE.CylinderGeometry(1.16,1.16,0.2,48),chrome); tc.position.y=1.3; f.add(tc);
-    var lg=new THREE.Mesh(new THREE.CylinderGeometry(0.46,0.46,0.22,40),new THREE.MeshStandardMaterial({color:0x141414,roughness:.45,metalness:.7})); lg.position.y=1.41; f.add(lg);
-    var bc=new THREE.Mesh(new THREE.CylinderGeometry(1.36,1.36,0.18,48),chrome); bc.position.y=-1.3; f.add(bc);
-    var nk=new THREE.Mesh(new THREE.CylinderGeometry(0.92,1.0,0.55,40,1,true),chrome); nk.position.y=-1.6; f.add(nk);
-    scene.add(f);
-    scene.add(new THREE.AmbientLight(0x3a3a3a,1.0));
-    var key=new THREE.DirectionalLight(0xffffff,2.1); key.position.set(4,6,6); scene.add(key);
-    var warm=new THREE.PointLight(0xc23a2e,2.0,40); warm.position.set(-5,1,4); scene.add(warm);
-    var fill=new THREE.PointLight(0xffffff,0.9,40); fill.position.set(4,-2,5); scene.add(fill);
-    var tRY=0,tRX=0,cRY=0,cRX=0,drag=false,lx=0,ly=0,auto=!reduce;
-    host.style.cursor='grab';
-    host.addEventListener('pointerdown',function(e){drag=true;auto=false;lx=e.clientX;ly=e.clientY;host.style.cursor='grabbing';});
-    window.addEventListener('pointerup',function(){drag=false;host.style.cursor='grab';});
-    window.addEventListener('pointermove',function(e){ if(!drag)return; tRY+=(e.clientX-lx)*0.01; tRX+=(e.clientY-ly)*0.01; tRX=Math.max(-0.5,Math.min(0.6,tRX)); lx=e.clientX; ly=e.clientY; });
-    window.addEventListener('resize',function(){ var w=host.clientWidth,h=host.clientHeight; if(!w||!h)return; camera.aspect=w/h; camera.updateProjectionMatrix(); renderer.setSize(w,h); });
-    function loop(){ animationFrameId = requestAnimationFrame(loop); if(auto) tRY+=0.006; cRY+=(tRY-cRY)*0.08; cRX+=(tRX-cRX)*0.08; f.rotation.y=cRY; f.rotation.x=0.12+cRX; renderer.render(scene,camera); }
-    loop();
-
-    return () => {
-      if (renderer) renderer.dispose();
-      if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    };
   }, []);
 
   const t = (key) => T[key] ? T[key][lang] : key;
@@ -215,9 +146,7 @@ export default function Home() {
   </div>
 
   <div className="stage" id="filter3d">
-    <img className="stage-fallback" src="/filter3d.jpg" alt="فلتر رياضي" />
-    <span className="spinhint"  dangerouslySetInnerHTML={{ __html: t("hero.hint") }}></span>
-    <div className="chip"><div className="n" id="rpm">+0%</div><div className="l"  dangerouslySetInnerHTML={{ __html: t("hero.chip") }}></div></div>
+    <Filter3D hint={t("hero.hint")} chipLabel={t("hero.chip")} />
   </div>
   <div className="vig"></div>
 
