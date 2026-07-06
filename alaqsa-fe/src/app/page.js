@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { medusaClient } from '../lib/medusa';
+import Link from 'next/link';
+import { listProducts } from '../lib/medusa';
+import ProductCard from '../components/ProductCard';
 
 const Filter3D = dynamic(() => import('../components/Filter3D'), { ssr: false });
 
@@ -11,6 +13,7 @@ const T = {
     'nav.about':{ar:'المحل',en:'The Shop'},
     'nav.services':{ar:'خدماتنا',en:'Services'},
     'nav.work':{ar:'أعمالنا',en:'Work'},
+    'nav.products':{ar:'المنتجات',en:'Products'},
     'nav.contact':{ar:'تواصل',en:'Contact'},
     'nav.wa':{ar:'واتساب',en:'WhatsApp'},
     'hero.name':{ar:'الأقصى لزينة السيارات - فلاتر رياضي',en:'Al-Aqsa Auto Accessories - Sport Filters'},
@@ -58,7 +61,11 @@ const T = {
     'cta.btn1':{ar:'ابدأ المحادثة',en:'Start a chat'},
     'cta.btn2':{ar:'زورنا في المحل',en:'Visit the shop'},
     'footer.badge':{ar:'معاينة · موقع تجريبي',en:'Preview · demo site'},
-    'footer.note':{ar:'معاينة لموقع الأقصى لزينة السيارات بصور المحل الفعلية. الأرقام والحسابات والدوام للتأكيد قبل الإطلاق.',en:'Preview for Al-Aqsa Auto Accessories, built with the shop\u2019s own photos. Numbers, accounts and hours to be confirmed before launch.'}
+    'footer.note':{ar:'معاينة لموقع الأقصى لزينة السيارات بصور المحل الفعلية. الأرقام والحسابات والدوام للتأكيد قبل الإطلاق.',en:'Preview for Al-Aqsa Auto Accessories, built with the shop\u2019s own photos. Numbers, accounts and hours to be confirmed before launch.'},
+    'shop.tag':{ar:'المتجر',en:'Shop'},
+    'shop.h2':{ar:'منتجاتنا',en:'Our Products'},
+    'shop.p':{ar:'قطع أداء وزينة — متوفرة للطلب.',en:'Performance and styling parts — available to order.'},
+    'shop.all':{ar:'عرض الكل',en:'View all'},
   };
 
 export default function Home() {
@@ -66,15 +73,9 @@ export default function Home() {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    // Fetch products from Medusa Backend
-    medusaClient.products.list()
-      .then(({ products }) => {
-        setProducts(products);
-        console.log("Fetched Medusa Products:", products);
-      })
-      .catch((err) => {
-        console.error("Medusa fetch error:", err);
-      });
+    listProducts({ limit: 4 })
+      .then(({ products }) => setProducts(products))
+      .catch((err) => console.error("Medusa fetch error:", err));
   }, []);
 
   const toggleLang = () => {
@@ -127,6 +128,7 @@ export default function Home() {
         <a href="#about"  dangerouslySetInnerHTML={{ __html: t("nav.about") }}></a>
         <a href="#services"  dangerouslySetInnerHTML={{ __html: t("nav.services") }}></a>
         <a href="#work"  dangerouslySetInnerHTML={{ __html: t("nav.work") }}></a>
+        <Link href="/products"  dangerouslySetInnerHTML={{ __html: t("nav.products") }}></Link>
         <a href="#contact"  dangerouslySetInnerHTML={{ __html: t("nav.contact") }}></a>
         <a href="https://wa.me/966556766564?text=%D8%A7%D9%84%D8%B3%D9%84%D8%A7%D9%85%20%D8%B9%D9%84%D9%8A%D9%83%D9%85" target="_blank" rel="noopener" className="nav-wa"  dangerouslySetInnerHTML={{ __html: t("nav.wa") }}></a>
       </nav>
@@ -200,6 +202,27 @@ export default function Home() {
     </div>
   </div>
 </section>
+
+{/* PRODUCTS */}
+{products.length > 0 && (
+<section className="menu band" id="products">
+  <div className="wrap">
+    <div className="band-head rv">
+      <span className="tag ar"  dangerouslySetInnerHTML={{ __html: t("shop.tag") }}></span>
+      <h2  dangerouslySetInnerHTML={{ __html: t("shop.h2") }}></h2>
+      <p  dangerouslySetInnerHTML={{ __html: t("shop.p") }}></p>
+    </div>
+    <div className="prod-grid">
+      {products.map((product) => (
+        <ProductCard key={product.id} product={product} />
+      ))}
+    </div>
+    <div className="ctas" style={{marginTop: "32px"}}>
+      <Link className="btn btn-line" href="/products"  dangerouslySetInnerHTML={{ __html: t("shop.all") }}></Link>
+    </div>
+  </div>
+</section>
+)}
 
 {/* GALLERY */}
 <section className="band" id="work" style={{background: "var(--bg)"}}>
