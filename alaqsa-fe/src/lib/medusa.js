@@ -1,29 +1,31 @@
 const MEDUSA_BACKEND_URL =
-  process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL || "http://localhost:9000";
+  process.env.MEDUSA_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_MEDUSA_BACKEND_URL ||
+  "http://127.0.0.1:9003";
 
 const MEDUSA_PUBLISHABLE_KEY =
   process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY || "";
 
 const DEFAULT_REGION_ID = process.env.NEXT_PUBLIC_MEDUSA_REGION_ID || "";
 
-async function medusaFetch(path, { searchParams, ...init } = {}) {
-  const url = new URL(path, MEDUSA_BACKEND_URL);
+async function medusaFetch(path, { searchParams } = {}) {
+  const isBrowser = typeof window !== "undefined";
+  const url = isBrowser
+    ? new URL(`/api/store${path.replace(/^\/store/, "")}`, window.location.origin)
+    : new URL(path, MEDUSA_BACKEND_URL);
+
   if (searchParams) {
     Object.entries(searchParams).forEach(([key, value]) => {
       if (value != null && value !== "") url.searchParams.set(key, value);
     });
   }
 
-  const headers = {
-    "Content-Type": "application/json",
-    ...(init.headers || {}),
-  };
-
+  const headers = { "Content-Type": "application/json" };
   if (MEDUSA_PUBLISHABLE_KEY) {
     headers["x-publishable-api-key"] = MEDUSA_PUBLISHABLE_KEY;
   }
 
-  const res = await fetch(url.toString(), { ...init, headers });
+  const res = await fetch(url.toString(), { headers, cache: "no-store" });
   if (!res.ok) {
     const body = await res.text();
     throw new Error(`Medusa ${res.status}: ${body.slice(0, 200)}`);
@@ -44,27 +46,29 @@ export async function getDefaultRegionId() {
 
 export async function listProducts({ limit = 12, offset = 0, regionId } = {}) {
   const region = regionId || (await getDefaultRegionId());
-  const { products, count } = await medusaFetch("/store/products", {
-    searchParams: {
-      limit: String(limit),
-      offset: String(offset),
-      region_id: region,
-      fields: "id,title,handle,subtitle,description,thumbnail,*images,*variants,*variants.calculated_price",
-    },
-  });
+  const searchParams = {
+    limit: String(limit),
+    offset: String(offset),
+    fields:
+      "id,title,handle,subtitle,description,thumbnail,*images,*variants,*variants.calculated_price",
+  };
+  if (region) searchParams.region_id = region;
+
+  const { products, count } = await medusaFetch("/store/products", { searchParams });
   return { products: products || [], count: count || 0 };
 }
 
 export async function getProductByHandle(handle, { regionId } = {}) {
   const region = regionId || (await getDefaultRegionId());
-  const { products } = await medusaFetch("/store/products", {
-    searchParams: {
-      handle,
-      limit: "1",
-      region_id: region,
-      fields: "id,title,handle,subtitle,description,thumbnail,*images,*variants,*variants.calculated_price,*variants.options,*options",
-    },
-  });
+  const searchParams = {
+    handle,
+    limit: "1",
+    fields:
+      "id,title,handle,subtitle,description,thumbnail,*images,*variants,*variants.calculated_price,*variants.options,*options",
+  };
+  if (region) searchParams.region_id = region;
+
+  const { products } = await medusaFetch("/store/products", { searchParams });
   return products?.[0] || null;
 }
 

@@ -1,32 +1,20 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { listProducts } from "../../lib/medusa";
 import ProductCard from "../../components/ProductCard";
+import RevealObserver from "../../components/RevealObserver";
 
-export default function ProductsPage() {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+export const dynamic = "force-dynamic";
 
-  useEffect(() => {
-    document.documentElement.lang = "ar";
-    document.documentElement.dir = "rtl";
+export default async function ProductsPage() {
+  let products = [];
+  let error = null;
 
-    const nav = document.getElementById("nav");
-    const handleScroll = () => {
-      if (nav) nav.classList.toggle("on", window.scrollY > 20);
-    };
-    window.addEventListener("scroll", handleScroll);
-
-    listProducts({ limit: 24 })
-      .then(({ products }) => setProducts(products))
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  try {
+    const result = await listProducts({ limit: 48 });
+    products = result.products;
+  } catch (err) {
+    error = err.message;
+  }
 
   return (
     <>
@@ -53,18 +41,18 @@ export default function ProductsPage() {
         </div>
       </header>
 
+      <RevealObserver />
       <main className="shop-page">
         <section className="band" style={{ paddingTop: "120px" }}>
           <div className="wrap">
             <div className="band-head">
               <span className="tag ar">المتجر</span>
               <h2>منتجاتنا</h2>
-              <p>قطع أداء وزينة — أضف منتجات جديدة من لوحة Medusa Admin.</p>
+              <p>قطع أداء وزينة — متوفرة للطلب من المحل.</p>
             </div>
 
-            {loading && <p className="shop-status">جاري التحميل...</p>}
             {error && <p className="shop-status shop-error">{error}</p>}
-            {!loading && !error && products.length === 0 && (
+            {!error && products.length === 0 && (
               <p className="shop-status">لا توجد منتجات بعد.</p>
             )}
 
